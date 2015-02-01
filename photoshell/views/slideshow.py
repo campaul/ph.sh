@@ -1,15 +1,16 @@
 from threading import Lock
 
 from gi.repository import Gtk
+from photoshell.widgets.photodisplay import PhotoDisplay
 
 
 class Slideshow(Gtk.Box):
 
     def __init__(self):
         super(Slideshow, self).__init__()
-        self.image = Gtk.Image()
+        self.canvas = PhotoDisplay()
         self.image_path = None
-        self.pack_start(self.image, True, True, 0)
+        self.pack_start(self.canvas, True, True, 0)
         self.mutex = Lock()
 
     def render_selection(self, selection):
@@ -18,11 +19,6 @@ class Slideshow(Gtk.Box):
         new_photo = selection.current_photo()
 
         if new_photo:
-            # TODO: image path is bad criteria for redrawing if we re-develop
-            if self.image_path != new_photo.raw_path:
-                self.image.set_from_pixbuf(
-                    new_photo.gtk_pixbuf(selection.library_path),
-                )
-                self.image_path = new_photo.raw_path
+            self.canvas.set_photo(new_photo)
 
         self.mutex.release()
