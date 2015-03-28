@@ -3,6 +3,7 @@ env:
   - TOXENV=py33
   - TOXENV=py34
   - TOXENV=pypy3
+  - TOXENV=cover
 install:
   - "pip install ."
   - "pip install -r requirements.txt"
@@ -11,4 +12,4 @@ install:
 script:
   - make test
 after_success:
-  - coveralls
+  - '[ "$TOXENV" == "cover" ] && coveralls'
