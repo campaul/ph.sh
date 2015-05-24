@@ -16,4 +16,4 @@ take a few minutes to install dependencies.
 + Python3.4
 + Virtualenv
 + Pip
-+ ImageMagick-devel
++ ImageMagick
