@@ -1,14 +1,11 @@
 from collections import namedtuple
-from datetime import datetime
 import os
 import shutil
 
 import yaml
 
-from rawphoto.raw import Raw
+from rawkit.raw import Raw
 
-
-common_formats = ['.PNG', '.JPG', '.JPEG']
 
 _Photo = namedtuple('Photo', [
     'raw_path',
@@ -28,73 +25,9 @@ class Photo(_Photo):
         )
 
     @property
-    def aperture(self):
-        return self.metadata['aperture']
-
-    @property
-    def datetime(self):
-        return self.metadata['datetime']
-
-    @property
-    def exposure(self):
-        return self.metadata['exposure']
-
-    @property
-    def flash(self):
-        return self.metadata['flash']
-
-    @property
-    def focal_length(self):
-        return self.metadata['focal_length']
-
-    @property
-    def gps(self):
-        return self.metadata['gps']
-
-    @property
-    def height(self):
-        return self.metadata['height']
-
-    @property
-    def iso(self):
-        return self.metadata['iso']
-
-    @property
-    def lens(self):
-        return self.metadata['lens']
-
-    @property
-    def make(self):
-        return self.metadata['make']
-
-    @property
-    def model(self):
-        return self.metadata['model']
-
-    @property
-    def orientation(self):
-        return self.metadata['orientation']
-
-    @property
-    def width(self):
-        return self.metadata['width']
-
-    @property
     def metadata(self):
-        sidecar_path = self.raw_path + '.yaml'
-
-        if os.path.isfile(sidecar_path):
-            with open(sidecar_path, 'r') as sidecar:
-                metadata = yaml.load(sidecar)
-        else:
-            with Raw(filename=self.raw_path) as raw:
-                metadata = raw.metadata
-
-        # TODO: rawphoto doesn't return the data in the same format as the
-        # sidecar
-        if type(metadata['datetime']) is str:
-            metadata['datetime'] = datetime.strptime(
-                metadata['datetime'], "%Y:%m:%d %H:%M:%S")
+        with Raw(filename=self.raw_path) as raw:
+            metadata = raw.metadata
 
         return metadata
 
@@ -122,25 +55,21 @@ class Photo(_Photo):
 
     def develop(self, write_sidecar=False, cache_path=None):
         # develop photo
-        if os.path.splitext(self.raw_path)[-1].upper() in common_formats:
-            developed_path = self.raw_path
-        else:
-            developed_name = '{file_hash}.{extension}'.format(
-                file_hash=self.file_hash,
-                extension='jpg',
-            )
+        developed_name = '{file_hash}.{extension}'.format(
+            file_hash=self.file_hash,
+            extension='ppm',
+        )
 
-            developed_path = os.path.join(
-                cache_path,
-                'jpg',
-                developed_name,
-            )
+        developed_path = os.path.join(
+            cache_path,
+            'ppm',
+            developed_name,
+        )
 
         if not os.path.isfile(developed_path):
-            blob = Raw(filename=self.raw_path).fhandle.get_quarter_size_rgb()
-
-            with open(developed_path, 'wb') as f:
-                f.write(blob)
+            with Raw(filename=self.raw_path) as raw:
+                raw.options.half_size = True
+                raw.save(filename=developed_path)
 
         photo = Photo.create(
             raw_path=self.raw_path,
