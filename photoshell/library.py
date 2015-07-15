@@ -1,12 +1,13 @@
 import os
 
+from datetime import datetime
 import sqlite3 as sqlite
 
 from photoshell.photo import Photo
 from photoshell.selection import Selection
 from photoshell.hash import hash_file
 from photoshell.progress import Progress
-from rawphoto import raw
+from rawkit import util
 
 
 class Library(object):
@@ -22,7 +23,7 @@ class Library(object):
             os.makedirs(self.library_path)
         if not os.path.exists(self.cache_path):
             os.makedirs(self.cache_path)
-            os.makedirs(os.path.join(self.cache_path, 'jpg'))
+            os.makedirs(os.path.join(self.cache_path, 'ppm'))
             os.makedirs(os.path.join(self.cache_path, 'raw'))
 
         self.db_path = os.path.join(self.library_path, '.library.db')
@@ -87,7 +88,7 @@ class Library(object):
         file_name, file_ext = os.path.splitext(
             os.path.basename(photo.raw_path))
 
-        import_path = photo.datetime.strftime(
+        import_path = datetime.fromtimestamp(photo.metadata.timestamp).strftime(
             self.import_string.format(
                 original_filename=file_name,
                 file_hash=photo.file_hash,
@@ -135,7 +136,7 @@ class Library(object):
 
             # Develop the photo
             photo = photo.develop(
-                write_sidecar=True,
+                write_sidecar=False,
                 cache_path=self.cache_path,
             )
 
@@ -157,7 +158,8 @@ class Library(object):
         connection.close()
 
     def discover(self, path):
-        photo_list = raw.discover(path)
+        photo_list = [file_name.decode('ascii')
+                      for file_name in util.discover(path)]
         progress = Progress(len(photo_list))
 
         def photo_iterator():

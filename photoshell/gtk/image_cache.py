@@ -1,3 +1,4 @@
+from datetime import datetime
 
 
 class GtkImageCache(object):
@@ -17,7 +18,7 @@ class GtkImageCache(object):
         if not self.cache.get(photo_key, None):
             self.cache[photo_key] = Image(
                 photo.developed_path,
-                photo.datetime
+                datetime.fromtimestamp(photo.metadata.timestamp),
             ).load_preview(
                 base_path,
                 max_width=max_width,
