@@ -28,7 +28,8 @@ class Window(Gtk.Window):
 
         self.keyReleaseBindings = {
             Gdk.KEY_Left: lambda self, button: self.prev_photo(button),
-            Gdk.KEY_Right: lambda self, button: self.next_photo(button)
+            Gdk.KEY_Right: lambda self, button: self.next_photo(button),
+            Gdk.KEY_Escape: lambda self, button: self.unfullscreen(),
         }
 
         self.library = library
@@ -122,6 +123,15 @@ class Window(Gtk.Window):
         terminal_button.add(terminal_image)
         # TODO: add this back when it works
         # self.header_bar.pack_end(terminal_button)
+
+        # Create fullscreen button
+        fullscreen_button = Gtk.Button()
+        fullscreen_icon = Gio.ThemedIcon(name="view-fullscreen-symbolic")
+        fullscreen_image = Gtk.Image.new_from_gicon(
+            fullscreen_icon, Gtk.IconSize.BUTTON)
+        fullscreen_button.add(fullscreen_image)
+        fullscreen_button.connect('clicked', self.go_fullscreen)
+        self.header_bar.pack_end(fullscreen_button)
 
         # Create view box
         view_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
@@ -229,3 +239,6 @@ class Window(Gtk.Window):
     def on_swipe(self, gesture, x_velocity, y_velocity):
         if abs(x_velocity) > SWIPE_THRESHOLD:
             self.prev_photo() if x_velocity > 0 else self.next_photo()
+
+    def go_fullscreen(self, button):
+        self.fullscreen()
